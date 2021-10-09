@@ -5,14 +5,18 @@
     tag: 'another_custom_nginx'
     registry: 'agapochkina/private_registry'
     container_name: 'systemd-nginx'
-  vars_prompt:
-  - name: docker_key
-    prompt: Enter dockerhub token
-    private: yes
+    dockerhub_token: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+        31373039656363376130613637616132633934656166643161313164383961626133366461366238
+        3365643133653061333338653933336265636139313864300a346633303234633161656333393832
+        36643535343131366338656562363738393264636363653838316534663530333537633231623130
+        6330666362663739330a333236353562346631336234393330626534666330663561303831623730
+        63323736656464613636383237363863316434623532633063326532633339303536363330363363
+        3130633837333662666439356634356233656132666434393132
 
   tasks:
     - name: Login in hub
-      shell: docker login -u agapochkina -p {{ docker_key }}
+      shell: docker login -u agapochkina -p {{ dockerhub_token }}
 
     - name: Pull image
       shell: docker pull {{ registry }}:{{ tag }}
@@ -45,7 +49,23 @@
         daemon_reload: yes
       when: create_env_file.changed
 
+    - name: Stop container
+      systemd:
+        name: docker-{{ container_name }}.service
+        state: stopped
+
+    - name: Enable unit
+      systemd:
+        name: docker-{{ container_name }}.service
+        enabled: yes
+
     - name: Start
       systemd:
         name: docker-{{ container_name }}.service
         state: started
+
+    - name: Check is container really started
+      command: systemctl is-active "docker-{{ container_name }}"
+
+      
+    
