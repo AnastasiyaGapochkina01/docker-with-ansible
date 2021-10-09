@@ -1,0 +1,51 @@
+---
+- hosts: all
+  become: true
+  vars:
+    tag: 'another_custom_nginx'
+    registry: 'agapochkina/private_registry'
+    container_name: 'systemd-nginx'
+  vars_prompt:
+  - name: docker_key
+    prompt: Enter dockerhub token
+    private: yes
+
+  tasks:
+    - name: Login in hub
+      shell: docker login -u agapochkina -p {{ docker_key }}
+
+    - name: Pull image
+      shell: docker pull {{ registry }}:{{ tag }}
+      
+    - name: Create unit file
+      template:
+        src: systemd-unit.j2
+        dest: /etc/systemd/system/docker-{{ container_name }}.service
+        owner: root
+        group: root
+        mode: 0644
+      register: create_unit_file
+
+    - name: Create env directory
+      file:
+        path: /opt/container_envs
+        state: directory
+
+    - name: Create env file
+      template:
+        src: envs.j2
+        dest: /opt/container_envs/{{ container_name }}.env
+        owner: root
+        group: root
+        mode: 0644
+      register: create_env_file
+
+    - name: Daemon reload
+      systemd:
+        daemon_reload: yes
+      when: create_env_file.changed
+
+    - name: Start
+      systemd:
+        name: docker-{{ container_name }}.service
+        state: started
