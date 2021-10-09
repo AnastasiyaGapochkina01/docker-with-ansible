@@ -2,9 +2,7 @@
 - hosts: all
   become: true
   vars:
-    tag: 'another_custom_nginx'
     registry: 'agapochkina/private_registry'
-    container_name: 'systemd-nginx'
     dockerhub_token: !vault |
         $ANSIBLE_VAULT;1.1;AES256
         31373039656363376130613637616132633934656166643161313164383961626133366461366238
@@ -13,6 +11,7 @@
         6330666362663739330a333236353562346631336234393330626534666330663561303831623730
         63323736656464613636383237363863316434623532633063326532633339303536363330363363
         3130633837333662666439356634356233656132666434393132
+      # распарсить переменные из files/{service}.yaml
 
   tasks:
     - name: Login in hub
@@ -58,6 +57,7 @@
       systemd:
         name: docker-{{ container_name }}.service
         enabled: yes
+      when: {{ running }} == 'true'
 
     - name: Start
       systemd:
@@ -66,6 +66,3 @@
 
     - name: Check is container really started
       command: systemctl is-active "docker-{{ container_name }}"
-
-      
-    

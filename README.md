@@ -2,5 +2,5 @@
 
 ```
 ansible-vault encrypt_string "you-token-here" --name "dockerhub_token"
-ansible-playbook -i inventory main.yaml --ask-vault-pass
+ansible-playbook -i inventory/inventory main.yaml --ask-vault-pass
 ```
