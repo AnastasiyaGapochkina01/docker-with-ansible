@@ -47,16 +47,16 @@
         daemon_reload: yes
       when: create_env_file.changed
 
-    - name: Stop container
-      systemd:
-        name: docker-{{ container_name }}.service
-        state: stopped
-
     - name: Enable unit
       systemd:
         name: docker-{{ container_name }}.service
         enabled: yes
       when: running
+
+    - name: Stop container
+      systemd:
+        name: docker-{{ container_name }}.service
+        state: stopped
 
     - name: Start
       systemd:

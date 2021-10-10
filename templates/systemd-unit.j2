@@ -10,7 +10,10 @@ Restart=always
 ExecStartPre=-/usr/bin/docker rm -f {{ container_name }}
 ExecStart=/bin/bash -c 'echo "Starting {{ container_name }} container"; \
 exec /usr/bin/docker run -t --name="{{ container_name }}" \
---env-file /opt/container_envs/{{ container_name }}.env {{ registry }}:{{ tag }}'
+--env-file /opt/container_envs/{{ container_name }}.env \
+{% if ports is defined %}{% if ports is string %}-p '{{ ports }}' \
+{% endif %}{% endif %}
+{{ registry }}:{{ tag }}'
 ExecStop=-/usr/bin/docker stop --time 5 {{ container_name }}
 ExecStop=-/usr/bin/docker rm {{ container_name }}
 
