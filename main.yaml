@@ -11,7 +11,6 @@
         6330666362663739330a333236353562346631336234393330626534666330663561303831623730
         63323736656464613636383237363863316434623532633063326532633339303536363330363363
         3130633837333662666439356634356233656132666434393132
-      # распарсить переменные из files/{service}.yaml
 
   tasks:
     - name: Login in hub
@@ -36,7 +35,7 @@
 
     - name: Create env file
       template:
-        src: envs.j2
+        src: "{{ container_name }}.env.j2"
         dest: /opt/container_envs/{{ container_name }}.env
         owner: root
         group: root
@@ -57,7 +56,7 @@
       systemd:
         name: docker-{{ container_name }}.service
         enabled: yes
-      when: {{ running }} == 'true'
+      when: running
 
     - name: Start
       systemd:
